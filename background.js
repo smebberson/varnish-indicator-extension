@@ -17,18 +17,22 @@ const isVarnishPresent = ({ headers = [] } = {}) =>
     headers.some(({ name }) => ['x-varnish', 'x-varnish-cache'].includes(name));
 
 const varnishStatus = ({ headers = [] } = {}) => {
-    const hitMissHeader = headers.find(
-        ({ name }) => name === 'x-varnish-cache',
-    );
+    const hitMissHeader = headers
+        .reverse()
+        .find(({ name }) => name === 'x-varnish-cache');
 
     if (hitMissHeader) {
         return hitMissHeader.value.toLowerCase();
     }
 
-    const varnishHeader = headers.find(({ name }) => name === 'x-varnish');
+    const varnishHeaders = headers.filter(({ name }) => name === 'x-varnish');
 
-    if (varnishHeader) {
-        return varnishHeader.value.split(' ').length >= 2 ? 'hit' : 'miss';
+    if (varnishHeaders.length) {
+        return varnishHeaders.some((header) => {
+            return header.value.split(' ').length >= 2;
+        })
+            ? 'hit'
+            : 'miss';
     }
 
     return null;
